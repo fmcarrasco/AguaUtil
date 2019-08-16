@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import calendar
-
+import time
 
 def get_xlsfile_data(n_file):
     """
@@ -20,7 +20,9 @@ def get_xlsfile_data(n_file):
 resol = '500'  # Resolucion
 # Carpeta salida x Dpto y Cultivo
 p_out = 'e:/python/AguaUtil/out/'
-ipath = p_out + resol + '_' + '01072019_out/'
+ipath = p_out + resol + '_' + '21042019_out/'
+opcion = 1 # 0: Toma el ultimo dato; 1: toma el dato de fecha dado
+fecha_c = dt.datetime(2019, 2, 11)
 # --------------------- Start Code ---------------------------------------
 if resol == '500':
     dp_file = 'e:/python/AguaUtil/Grilla500.csv'  # cambiar si resol = 500
@@ -31,11 +33,20 @@ lfiles = [i for i in os.listdir(ipath)
 dp = pd.read_csv(dp_file, sep=';', encoding='ISO-8859-1')
 resumen = pd.DataFrame(columns=['Fecha', 'Prov', 'Depto', 'LINK',
                                 'AU_WGT', 'Cultivo'])
+
+############
+start_time = time.time()
 for nfile in lfiles:
     dlt = get_xlsfile_data(nfile)
     df = pd.read_excel(ipath + nfile)
-    ul = df[['Fecha', 'AU_WGT']].iloc[-1]
-    fecha = ul.Fecha
+    if opcion == 0:
+        ul = df[['Fecha', 'AU_WGT']].iloc[-1]
+        fecha = ul.Fecha
+    elif opcion == 1:
+        ul = df[df['Fecha'] == fecha_c].iloc[0]
+        fecha = ul.Fecha
+
+    # ############################
     a = dp[np.logical_and(dp['PROVINCIA'] == dlt['Prov'],
                           dp['DEPTO'] == dlt['Dpto'])]
     link = a['LINK'].iloc[0]
@@ -45,3 +56,5 @@ for nfile in lfiles:
 # Guardamos excel con resultado
 nombre = p_out + resol + '_' + fecha.strftime('%Y%m%d') + '_resumen_AU.xlsx'
 resumen.to_excel(nombre, sheet_name='Resumen Agua Util')
+print('Tiempo de demora del script:')
+print("--- %s seconds ---" % (time.time() - start_time))

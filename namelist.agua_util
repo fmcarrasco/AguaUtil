@@ -1,0 +1,9 @@
+&config_au
+   deca = '2019-07-11'
+   file_ind = 'clt_indicador.csv'
+   carpeta_ppal = 'e:/python/AguaUtil/'
+   carpeta_bal = 'e:/python/AguaUtil/Balances/20190720/'
+   carpeta_deca = 'e:/python/AguaUtil/Decadales/20190720/'
+   carpeta_out = 'e:/python/AguaUtil/out/'
+   calculo_por = 'cuartel'
+/
