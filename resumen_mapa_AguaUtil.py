@@ -17,17 +17,17 @@ def get_xlsfile_data(n_file):
     return diccionario
 
 # ---- Cambiar para la corrida
-resol = '500'  # Resolucion
+resol = '50'  # Resolucion
 # Carpeta salida x Dpto y Cultivo
-p_out = 'e:/python/AguaUtil/out/'
-ipath = p_out + resol + '_' + '21042019_out/'
-opcion = 1 # 0: Toma el ultimo dato; 1: toma el dato de fecha dado
-fecha_c = dt.datetime(2019, 2, 11)
+p_out = 'c:/Silvana/Python/AguaUtil/out/'
+ipath = p_out + resol + '_' + '01092019_out/'
+opcion = 0 # 0: Toma el ultimo dato; 1: toma el dato de fecha dado
+fecha_c = dt.datetime(2019, 7, 11)
 # --------------------- Start Code ---------------------------------------
 if resol == '500':
-    dp_file = 'e:/python/AguaUtil/Grilla500.csv'  # cambiar si resol = 500
+    dp_file = 'c:/Silvana/Python/AguaUtil/Reticulas/Grilla500.csv'  # cambiar si resol = 500
 elif resol == '50':
-    dp_file = 'e:/python/AguaUtil/Grilla50.csv'  # cambiar si resol = 500
+    dp_file = 'c:/Silvana/Python/AguaUtil/Reticulas/Grilla50.csv'  # cambiar si resol = 500
 lfiles = [i for i in os.listdir(ipath)
          if os.path.isfile(os.path.join(ipath, i))]
 dp = pd.read_csv(dp_file, sep=';', encoding='ISO-8859-1')
@@ -36,6 +36,7 @@ resumen = pd.DataFrame(columns=['Fecha', 'Prov', 'Depto', 'LINK',
 
 ############
 start_time = time.time()
+print('Trabajando en: ' + str(len(lfiles)) + 'archivos')
 for nfile in lfiles:
     dlt = get_xlsfile_data(nfile)
     df = pd.read_excel(ipath + nfile)

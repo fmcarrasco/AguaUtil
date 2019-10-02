@@ -205,9 +205,10 @@ def processing_departamento(dic):
             Resumen = Resumen.assign(AU_WGT=sum_wgt_table(Resumen, weights))
             Resumen.apply(pd.to_numeric, errors='ignore')
             # -------------------------------------------------------------
-            fhoy = fecha_f.strftime('%d%m%Y')
-            ofolder = dic['opath'] + 'out/' + dic['resol'] + '_' + fhoy + '_out/'
-            os.makedirs(ofolder, exist_ok=True)
+            if dic['resol'] == '50':
+                ofolder = dic['s50']
+            elif dic['resol'] == '500':
+                ofolder = dic['s500']
             nombre = ofolder + item + '_' + dic['clt'] + '.xlsx'
             writer = pd.ExcelWriter(nombre, engine = 'xlsxwriter')
             Resumen.to_excel(writer, float_format = '%0.1f', sheet_name = 'Agua Util')
@@ -300,9 +301,7 @@ def processing_cuartel(dic):
             Resumen = Resumen.assign(AU_WGT=sum_wgt_table(Resumen, weights))
             Resumen.apply(pd.to_numeric, errors='ignore')
             # -------------------------------------------------------------
-            fhoy = dt.datetime.today().strftime('%d%m%Y')
-            ofolder = dic['opath'] + 'out/cuartel_' + dic['resol'] + '_' + fhoy + '/'
-            os.makedirs(ofolder, exist_ok=True)
+            ofolder = dic['s50']
             nombre = ofolder + item + '_' + prov + '_' + dic['clt'] + '.xlsx'
             writer = pd.ExcelWriter(nombre, engine = 'xlsxwriter')
             Resumen.to_excel(writer, sheet_name = 'Agua Util')
@@ -316,6 +315,47 @@ def processing_cuartel(dic):
             f.write(txt)
             f.write('--------------------------------------------------\n')
     f.close()
+
+
+def verifica_fecha(fbal, fecha_d):
+    '''
+    Recibe UN archivo de Balance y una fecha y verifica si se puede
+    calcular el valor decadico para la fecha indicada
+    '''
+    dateparse = lambda x: pd.datetime.strptime(x, '%d/%m/%Y')
+    df = pd.read_csv(fbal, sep=';', decimal=',',
+                     parse_dates=['Fecha'], date_parser=dateparse,
+                     encoding='ISO-8859-1')
+    # Renomobramos las columnas
+    df.columns = ['Fecha', 'ALM', 'ETR', 'ETC', 'AU', 'ED', 'EA']
+    fe_d = df.Fecha.dt.to_pydatetime()
+    yr = fecha_d.year
+    mo = fecha_d.month
+    dev_valor = False
+    if fecha_d.day == 1:
+        i1 = np.logical_and(fe_d >= dt.datetime(yr, mo, 1),
+                            fe_d <= dt.datetime(yr, mo, 10))
+        conteos = np.sum(i1)
+        if conteos == 10:
+            dev_valor = True
+
+    elif fecha_d.day == 11:
+        i1 = np.logical_and(fe_d >= dt.datetime(yr,mo,11),
+                            fe_d <= dt.datetime(yr,mo,20))
+        conteos = np.sum(i1)
+        if conteos == 10:
+            dev_valor = True
+    elif fecha_d.day == 21:
+        u_day = calendar.monthrange(yr, mo)[1]
+        i1 = np.logical_and(fe_d >= dt.datetime(yr,mo,21),
+                            fe_d <= dt.datetime(yr,mo,u_day))
+        conteos = np.sum(i1)
+        if (u_day == 30 and conteos == 10):
+            dev_valor = True
+        elif (u_day == 31 and conteos == 11):
+            dev_valor = True
+
+    return dev_valor
 
 
 def main():
