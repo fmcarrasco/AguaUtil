@@ -15,15 +15,23 @@ start_time = time.time()
 nml = f90nml.read('./namelist.agua_util')
 # Cambiar fecha para cada vez que se corre, colocando dia inicial decada
 deca = nml['config_au']['deca']
+cult_si = nml['config_au']['todos_cult']
 path = nml['config_au']['carpeta_bal']
 opath = nml['config_au']['carpeta_ppal']
 deca_folder = nml['config_au']['carpeta_deca']
+ret_folder = nml['config_au']['carpeta_ret']
+calcula_deca = nml['config_au']['calcula_deca']
 calculo_por = nml['config_au']['calculo_por']
 # Sin el punto que viene por default
 infile = './' + nml['config_au']['file_ind']
 ind_clt = pd.read_csv(infile, sep=';')
-cultivos1 = ind_clt['clt'].loc[ind_clt[deca[5::]]==1].tolist()
-cultivos2 = ind_clt['clt_file'].loc[ind_clt[deca[5::]]==1].tolist()
+if cult_si == 'SI':
+    cultivos1 = ind_clt['clt'].tolist()
+    cultivos2 = ind_clt['clt_file'].tolist()
+else:
+    cultivos1 = ind_clt['clt'].loc[ind_clt[deca[5::]]==1].tolist()
+    cultivos2 = ind_clt['clt_file'].loc[ind_clt[deca[5::]]==1].tolist()
+
 # -----  hasta aca se modifican los valores del usuario ------
 # Se crea carpetas
 os.makedirs(opath, exist_ok=True)
@@ -57,8 +65,8 @@ for resol in bla_bla:
         # Generate a summary of the Political File
         # Archivo Division Politica
         if resol == '50':
-            dp_file = opath + 'Grilla50.csv'
-            fdivpol = opath + 'resumen_divpol_50.csv'
+            dp_file = ret_folder + 'Grilla50.csv'
+            fdivpol = ret_folder + 'resumen_divpol_50.csv'
             dp = pd.read_csv(dp_file, sep=';', encoding='ISO-8859-1')
             pr_dp = dp['PROVINCIA'].values.squeeze() + '-' +\
                 dp['DEPTO'].values.squeeze()
@@ -68,8 +76,8 @@ for resol in bla_bla:
             dp1.to_csv(fdivpol, sep=';')
             print('###### Archivo resolucion: ' + fdivpol)
         elif resol == '500':
-            dp_file = opath + 'Grilla500.csv'
-            fdivpol = opath + 'resumen_divpol_500.csv'
+            dp_file = ret_folder + 'Grilla500.csv'
+            fdivpol = ret_folder + 'resumen_divpol_500.csv'
             dp = pd.read_csv(dp_file, sep=';', encoding='ISO-8859-1')
             dp.columns = ['COD_PROV', 'COD_DEPTO', 'LINK', 'DEPTO', 'PROVINCIA',
                           'centroide']
@@ -88,8 +96,11 @@ for resol in bla_bla:
         # ################################################
         # Start processing daily data to decade data
         # ################################################
-        print('###### Procesando ' + str(len(lfiles)) + ' archivos decadales')
-        # proccessing_decadal(lfiles, d)
+        if calcula_deca == 'SI':
+            print('###### Procesando ' + str(len(lfiles)) + ' archivos decadales')
+            proccessing_decadal(lfiles, d)
+        else:
+            print('###### Para esta corrida, se selecciono sin calculo de decadales')
         # ################################################
         # Start proccessing Data of Provinces and percentages of centroid inside
         # ################################################

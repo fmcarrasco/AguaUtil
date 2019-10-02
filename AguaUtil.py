@@ -212,6 +212,7 @@ def processing_departamento(dic):
             writer = pd.ExcelWriter(nombre, engine = 'xlsxwriter')
             Resumen.to_excel(writer, float_format = '%0.1f', sheet_name = 'Agua Util')
             tabla_peso.to_excel(writer, sheet_name = 'PESOS')
+            writer.save()
             f.write(u'Archivo resumen por departamento en: ' + nombre + '\n')
             f.write('--------------------------------------------------\n')
         else:
@@ -306,6 +307,7 @@ def processing_cuartel(dic):
             writer = pd.ExcelWriter(nombre, engine = 'xlsxwriter')
             Resumen.to_excel(writer, sheet_name = 'Agua Util')
             tabla_peso.to_excel(writer, sheet_name = 'PESOS')
+            writer.save()
             f.write('Archivo resumen por cuartel en: ' + nombre + '\n')
             f.write('--------------------------------------------------\n')
         else:
