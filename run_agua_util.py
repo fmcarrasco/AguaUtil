@@ -10,6 +10,8 @@ from AguaUtil import proccessing_decadal
 from AguaUtil import processing_departamento
 from AguaUtil import processing_cuartel
 from AguaUtil import verifica_fecha
+from AguaUtil import get_file_data
+from AguaUtil import get_divpol_file
 ##############################
 start_time = time.time()
 
@@ -20,6 +22,7 @@ nml = f90nml.read('./namelist.agua_util')
 deca = nml['config_au']['deca']
 dt_deca = dt.datetime.strptime(deca, '%Y-%m-%d')
 cult_si = nml['config_au']['todos_cult']
+cult_esp = nml['config_au']['espec_cult']
 path = nml['config_au']['carpeta_bal']
 opath = nml['config_au']['carpeta_ppal']
 deca_folder = nml['config_au']['carpeta_deca']
@@ -29,12 +32,17 @@ ret_f50 = nml['config_au']['archivo_ret'][0]
 ret_f500 = nml['config_au']['archivo_ret'][1]
 calcula_deca = nml['config_au']['calcula_deca']
 calculo_por = nml['config_au']['calculo_por']
+nm_debug = nml['config_au']['nm_debug']
+if nm_debug == 'SI':
+    debug = True
+    print('Modo Debugging!!')
+else:
+    debug = False
 # ----------------------------------------
 # Verificacion si la fecha indicada se puede calcular
 lfiles = [i for i in os.listdir(path)
           if os.path.isfile(os.path.join(path, i))]
 file_balance = path + lfiles[0]
-print(file_balance)
 verificador = verifica_fecha(file_balance, dt_deca)
 if verificador:
     print('Para la fecha indicada se puede calcular el valor decadico.')
@@ -53,6 +61,20 @@ if cult_si == 'SI':
     cultivos1 = ind_clt['clt'].tolist()
     cultivos2 = ind_clt['clt_file'].tolist()
     print('Se va a trabajar sobre TODOS los cultivos')
+    print(cultivos2)
+elif cult_si == 'UNO':
+    if cult_esp == 'P':
+        cultivos1 = [cult_esp]
+        cultivos2 = ['-' + cult_esp + '.']
+    elif cult_esp == 'CN':
+        cultivos1 = [cult_esp]
+        cultivos2 = ['-' + cult_esp + '.']
+    else:
+        cultivos1 = ind_clt['clt'].loc[ind_clt['clt'] == cult_esp].tolist()
+        cultivos2 = ind_clt['clt_file'].loc[ind_clt['clt'] == cult_esp].tolist()
+    print('Se va a trabajar sobre los siguientes cultivos: ')
+    print(cultivos1)
+    print(cultivos2)
 else:
     cultivos1 = ind_clt['clt'].loc[ind_clt[deca[5::]] == 1].tolist()
     cultivos2 = ind_clt['clt_file'].loc[ind_clt[deca[5::]] == 1].tolist()
@@ -82,6 +104,7 @@ else:
     print('Resolucion: 500; Reticula: ' + ret_folder + ret_f500)
     #
     bla_bla = ['50', '500']
+    #bla_bla = ['50']
     salida_50 =  out_folder + '50_' + dt_deca.strftime('%Y%m%d') +\
                 '_' + fhoy + '/'
     salida_500 =  out_folder + '500_' + dt_deca.strftime('%Y%m%d') +\
@@ -89,70 +112,68 @@ else:
     os.makedirs(salida_50, exist_ok=True)
     os.makedirs(salida_500, exist_ok=True)
 # ----------------------------------------------
-
+#fdivpol = get_divpol_file('50', ret_folder, ret_f50, ret_f500)
+#exit()
 # ----------------------------------------------
 # Comenzamos a iterar por resolucion y cultivo asignado
 for resol in bla_bla:
     for iclt, clt_file in enumerate(cultivos2):
-        print('###### Trabajando en la resolucion: ' + resol)
-        print('###### Trabajando en el cultivo: ' + clt_file)
+        print('###### Trabajando en la resolucion: ' + resol + ' ########')
+        print('###### Trabajando en el cultivo: ' + clt_file + ' ########')
         # Datos para el LOGFILE
         fdeca = dt_deca.strftime('%Y%m%d')
         lfile = opath + 'out/' + fhoy +'_' + cultivos1[iclt] + '_' + resol +\
                 '_' + fdeca + '_logfile.txt'
-        print('###### Archivo LOG en: ' + lfile)
+        print('###### Archivo LOG en: ' + lfile + ' ########')
         f = open(lfile, 'w')
         f.write('--------------------------------------------------\n')
         f.write('Carpeta de archivos: ' + path + '\n')
         f.write('Carpeta de salida 50: ' + salida_50 + ' \n')
         f.write('Carpeta de salida 500:' + salida_500 + ' \n')
         f.write('Carpeta de decadales: ' + deca_folder + '\n')
+        if resol == '50':
+            f.write('Archivo con datos Division Politica: ' + ret_f50 + '\n')
+        elif resol == '500':
+            f.write('Archivo con datos Division Politica: ' + ret_f500 + '\n')
         f.write('--------------------------------------------------\n')
         f.close()
         # Save in array ONLY files
         lfiles = [i for i in os.listdir(path)
                   if os.path.isfile(os.path.join(path, i)) and\
                   clt_file in i]
+        if debug:
+            print('Aca estoy debuggeando')
+            ftexto = open('./prueba_archivos.txt', 'w')
+            ftexto.write('--------------------------------------------------\n')
+            for arc in lfiles:
+                f_d = get_file_data(arc)
+                ftexto.write('Archivo: ' + arc + '\n')
+                ftexto.write('Centroide: ' + f_d['ctrd'] + '\n')
+                ftexto.write('Cultivo: ' + f_d['clt'] + '\n')
+                ftexto.write('--------------------------------------------------\n')
+            ftexto.close()
+            break
         # Generate a summary of the Political File
         # Archivo Division Politica
-        if resol == '50':
-            dp_file = ret_folder + ret_f50
-            fdivpol = ret_folder + 'resumen_divpol_50.csv'
-            dp = pd.read_csv(dp_file, sep=';', encoding='ISO-8859-1')
-            pr_dp = dp['PROVINCIA'].values.squeeze() + '-' +\
-                dp['DEPTO'].values.squeeze()
-            dp = dp.assign(PRDPT=pr_dp)
-            dp1 = dp.groupby(['Distrito','PRDPT','centroide']).count()
-            dp1.apply(pd.to_numeric, errors='ignore')
-            dp1.to_csv(fdivpol, sep=';')
-            print('###### Archivo resolucion: ' + fdivpol)
-        elif resol == '500':
-            dp_file = ret_folder + ret_f500
-            fdivpol = ret_folder + 'resumen_divpol_500.csv'
-            dp = pd.read_csv(dp_file, sep=';', encoding='ISO-8859-1')
-            dp.columns = ['COD_PROV', 'COD_DEPTO', 'LINK', 'DEPTO', 'PROVINCIA',
-                          'centroide']
-            pr_dp = dp['PROVINCIA'].values.squeeze() + '-' +\
-                    dp['DEPTO'].values.squeeze()
-            dp = dp.assign(PRDPT=pr_dp)
-            dp1 = dp.groupby(['PRDPT','centroide']).count()
-            dp1.apply(pd.to_numeric, errors='ignore')
-            dp1.to_csv(fdivpol, sep=';')
-            print('###### Archivo resolucion: ' + fdivpol)
-
+        fdivpol = get_divpol_file(resol, ret_folder, ret_f50, ret_f500,
+                                  calculo_por)
+        print('###### Archivo resolucion: ' + fdivpol)
         # Summary of variables in dictionary python
         d = {'opath':opath, 'decafolder':deca_folder, 'pfiles':path,
-             'clt':cultivos1[iclt], 'lfile':lfile, 'dpfile':dp_file,
+             'clt':cultivos1[iclt], 'lfile':lfile,
              'divpol':fdivpol, 'resol':resol, 's50':salida_50,
-             's500':salida_500}
+             's500':salida_500, 'debug':debug}
         # ################################################
         # Start processing daily data to decade data
         # ################################################
-        if calcula_deca == 'SI':
-            print('###### Procesando ' + str(len(lfiles)) + ' archivos decadales')
+        if calcula_deca == 'SI' and resol == '50':
+            print('###### Procesando ' + str(len(lfiles)) + ' archivos decadales ######')
             proccessing_decadal(lfiles, d)
+            print('###### Fin Calculo decadales ######')
+        elif calcula_deca == 'SI' and resol == '500':
+            print('Para resolucion ', resol, ' ya estan calculados los decadales')
         else:
-            print('###### Para esta corrida, se selecciono sin calculo de decadales')
+            print('###### Para esta corrida, se selecciono SIN calculo de decadales')
         # ################################################
         # Start proccessing Data of Provinces and percentages of centroid inside
         # ################################################

@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+__pycache__/*.py[cod]
 *.py[cod]
 namelist.agua_util
 
@@ -13,7 +14,7 @@ namelist.agua_util
 *.so
 
 *.so
-
+*.xlsx
 
 
 # Distribution / Packaging
