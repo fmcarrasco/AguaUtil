@@ -267,26 +267,33 @@ def proccessing_decadal(lfiles, dic):
         df = pd.read_csv(bfile, sep=';', decimal=',',
                          parse_dates=['Fecha'], date_parser=dateparse,
                          encoding='ISO-8859-1')
-        # Renomobramos las columnas
-        df.columns = ['Fecha', 'ALM', 'ETR', 'ETC', 'AU', 'ED', 'EA']
-        # Clasificamos los dias si pertenecen a cada decada.
-        i_col, f_col = clas_decada(df.Fecha.dt.to_pydatetime())
-        df = df.assign(i_deca=i_col)
-        # Obtenemos DataFrame con medias decadiales
-        deca = get_df_deca(df, f_col[0:int(i_col[-1])])
-        # Obtenemos datos de archivo (Centroide y Cultivo)
-        f_d = get_file_data(arc)
-        if f_d['clt'] != 'QUE':
+        # Chequeamos que no este vacio y trabajamos con ese archivo:
+        if df.empty:
+            f.write('Archivo: ' + arc + ' NO TIENE DATOS! \n')
+            print('Archivo: ' + arc + 'NO TIENE DATOS!')
+        else:
+            # Renomobramos las columnas
+            df.columns = ['Fecha', 'ALM', 'ETR', 'ETC', 'AU', 'ED', 'EA']
+            print(arc)
+            print(df.dtypes)
+            # Clasificamos los dias si pertenecen a cada decada.
+            i_col, f_col = clas_decada(df.Fecha.dt.to_pydatetime())
+            df = df.assign(i_deca=i_col)
+            # Obtenemos DataFrame con medias decadiales
+            deca = get_df_deca(df, f_col[0:int(i_col[-1])])
+            # Obtenemos datos de archivo (Centroide y Cultivo)
+            f_d = get_file_data(arc)
+            if f_d['clt'] != 'QUE':
             # Guardamos siempre que sepamos a que cultivo nos referimos:
-            d_file = dic['decafolder'] + 'decadales_' + f_d['ctrd'] +\
-                     '_' + f_d['clt']
-            deca.to_csv(d_file + '.txt', sep=';', decimal=',', float_format='%.3f',
-                        encoding='ISO-8859-1')
-            # ----- LOGFILE -------
-            f.write('Archivo con datos decadales: ' + d_file + '.txt \n')
-            f.write('--------------------------------------------------\n')
-            # ---------------------
-        df = None
+                d_file = dic['decafolder'] + 'decadales_' + f_d['ctrd'] +\
+                        '_' + f_d['clt']
+                deca.to_csv(d_file + '.txt', sep=';', decimal=',', float_format='%.3f',
+                            encoding='ISO-8859-1')
+                # ----- LOGFILE -------
+                f.write('Archivo con datos decadales: ' + d_file + '.txt \n')
+                f.write('--------------------------------------------------\n')
+                # ---------------------
+            df = None
     # --- End of LOOP ------------------------
     f.write(' #######################################################################################\n')
     f.write(' ################ TERMINO CALCULO DE ARCHIVOS DECADIALES X CENTROIDE ###################\n')
