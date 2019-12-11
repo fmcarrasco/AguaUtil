@@ -274,8 +274,6 @@ def proccessing_decadal(lfiles, dic):
         else:
             # Renomobramos las columnas
             df.columns = ['Fecha', 'ALM', 'ETR', 'ETC', 'AU', 'ED', 'EA']
-            print(arc)
-            print(df.dtypes)
             # Clasificamos los dias si pertenecen a cada decada.
             i_col, f_col = clas_decada(df.Fecha.dt.to_pydatetime())
             df = df.assign(i_deca=i_col)
@@ -363,6 +361,11 @@ def processing_departamento(dic):
             tabla_peso = get_df_weights(Resumen, npts, N_PT)
             # Calculamos columna con la SUMA y sus respectivos pesos
             Resumen = Resumen.assign(AU_WGT=sum_wgt_table(Resumen, npts, N_PT))
+            cols = list(Resumen.columns.values)
+            cols_new = [cols[0], cols[-1]]
+            for ncol in cols[1:-1]:
+                cols_new.append(ncol)
+            Resumen = Resumen[cols_new]
             Resumen.apply(pd.to_numeric, errors='ignore')
             # -------------------------------------------------------------
             nombre = save_output_depto(dic, Resumen, tabla_peso,
