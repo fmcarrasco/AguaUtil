@@ -438,6 +438,11 @@ def processing_cuartel(dic):
             tabla_peso = get_df_weights(Resumen, npts, N_PT)
             # Calculamos columna con la SUMA y sus respectivos pesos
             Resumen = Resumen.assign(AU_WGT=sum_wgt_table(Resumen, npts, N_PT))
+            cols = list(Resumen.columns.values)
+            cols_new = [cols[0], cols[-1]]
+            for ncol in cols[1:-1]:
+                cols_new.append(ncol)
+            Resumen = Resumen[cols_new]
             Resumen.apply(pd.to_numeric, errors='ignore')
             # -------------------------------------------------------------
             dic['prov'] = prov
