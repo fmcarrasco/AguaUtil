@@ -175,6 +175,7 @@ for resol in bla_bla:
             print('Para resolucion ', resol, ' ya estan calculados los decadales')
         else:
             print('###### Para esta corrida, se selecciono SIN calculo de decadales')
+            print('Leyendo Archivos decadiales en: ' + deca_folder)
         # ################################################
         # Start proccessing Data of Provinces and percentages of centroid inside
         # ################################################
