@@ -13,7 +13,6 @@ from AguaUtil import verifica_fecha
 from AguaUtil import get_file_data
 from AguaUtil import get_divpol_file
 ##############################
-
 start_time = time.time()
 
 fhoy = dt.datetime.today().strftime('%Y%m%d%H%M')
@@ -73,7 +72,7 @@ elif cult_si == 'UNO':
     else:
         cultivos1 = ind_clt['clt'].loc[ind_clt['clt'] == cult_esp].tolist()
         cultivos2 = ind_clt['clt_file'].loc[ind_clt['clt'] == cult_esp].tolist()
-    print('Se va a trabajar sobre el siguiente cultivo: ')
+    print('Se va a trabajar sobre los siguientes cultivos: ')
     print(cultivos1)
     print(cultivos2)
 else:
@@ -100,9 +99,9 @@ if calculo_por == 'cuartel':
     os.makedirs(salida_50, exist_ok=True)
 else:
     # Mensajes
-    print(' ----- Los calculos se van a hacer por DEPARTAMENTO. ----')
-    print(' ----- Resolucion: 50; Reticula: ' + ret_folder + ret_f50 + ' ----')
-    print(' ----- Resolucion: 500; Reticula: ' + ret_folder + ret_f500 + ' ----')
+    print('Los calculos se van a hacer por DEPARTAMENTO.')
+    print('Resolucion: 50; Reticula: ' + ret_folder + ret_f50)
+    print('Resolucion: 500; Reticula: ' + ret_folder + ret_f500)
     #
     bla_bla = ['50', '500']
     #bla_bla = ['50']
@@ -175,7 +174,6 @@ for resol in bla_bla:
             print('Para resolucion ', resol, ' ya estan calculados los decadales')
         else:
             print('###### Para esta corrida, se selecciono SIN calculo de decadales')
-            print('Leyendo Archivos decadiales en: ' + deca_folder)
         # ################################################
         # Start proccessing Data of Provinces and percentages of centroid inside
         # ################################################

@@ -1,8 +1,10 @@
 # Byte-compiled / optimized / DLL files
+
 __pycache__/
 __pycache__/*.py[cod]
+__pycache__\*.pyc
 *.py[cod]
-namelist.agua_util
+*namelist.agua_util
 
 #Compiled source #
 ###################

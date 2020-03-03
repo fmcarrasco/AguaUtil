@@ -94,12 +94,21 @@ def verifica_fecha(fbal, fecha_d):
             dev_valor = True
     elif fecha_d.day == 21:
         u_day = calendar.monthrange(yr, mo)[1]
+
         i1 = np.logical_and(fe_d >= dt.datetime(yr,mo,21),
                             fe_d <= dt.datetime(yr,mo,u_day))
         conteos = np.sum(i1)
+        ind_feb0 = np.logical_and(mo == 2, u_day == 28)
+        ind_feb1 = np.logical_and(mo == 2, u_day == 29)
         if (u_day == 30 and conteos == 10):
             dev_valor = True
         elif (u_day == 31 and conteos == 11):
+            dev_valor = True
+        elif (ind_feb0 and conteos == 8):
+            print('Febrero No Bisiesto')
+            dev_valor = True
+        elif (ind_feb1 and conteos == 9):
+            print('Febrero Bisiesto')
             dev_valor = True
 
     return dev_valor
@@ -132,9 +141,13 @@ def get_df_deca(df_val, fecha_col):
     list_of_series = [df1.index, df1.AU, df2.AU]  # Datos a considerar
     deca = pd.DataFrame({'AU':df1.AU, 'c_AU':df2.AU})
     deca = deca.assign(f_deca=fecha_col)  # Nueva columna con la fecha inicial
-    if deca['c_AU'].iloc[-1] < 10:
+    if (deca['c_AU'].iloc[-1] < 10 and deca['f_deca'].iloc[-1].month != 2):
         # Si el ultimo no tiene la decada completa, NO se incluye!
         deca.drop(deca.tail(1).index, inplace=True)
+    elif (deca['c_AU'].iloc[-1] < 8 and deca['f_deca'].iloc[-1].month == 2):
+        deca.drop(deca.tail(1).index, inplace=True)
+    # No hacer nada en caso que estos casos no se cumplan
+
     deca.apply(pd.to_numeric, errors='ignore')
     #
     return deca
